@@ -1,0 +1,998 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d14;--card:#161622;--card2:#1e1e2e;
+  --accent:#c77dff;--a2:#7b2fff;--gold:#ffd166;
+  --green:#06d6a0;--red:#ef476f;--blue:#4cc9f0;
+  --text:#f0efff;--muted:#8888aa;--border:rgba(255,255,255,0.09);
+}
+body{background:var(--bg);font-family:'Helvetica Neue',sans-serif;color:var(--text);margin:0}
+#app{max-width:400px;margin:0 auto;min-height:100vh;background:var(--bg);display:flex;flex-direction:column}
+.screen{display:none;flex-direction:column;flex:1}
+.screen.active{display:flex}
+
+#s-title{align-items:center;justify-content:center;text-align:center;gap:16px;padding:44px 24px;background:radial-gradient(ellipse at 50% 20%,#28105a 0%,var(--bg) 65%)}
+.logo{font-size:38px;font-weight:900;background:linear-gradient(130deg,#ffd166,#c77dff,#4cc9f0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1;letter-spacing:-1.5px}
+.logo-sub{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.t-desc{font-size:13px;color:var(--muted);line-height:1.85;max-width:290px}
+.btn{background:linear-gradient(135deg,var(--a2),var(--accent));color:#fff;border:none;padding:15px 32px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;width:100%;max-width:260px;letter-spacing:.3px;transition:transform .12s,opacity .12s}
+.btn:active{transform:scale(.96);opacity:.9}
+.feats{display:flex;flex-direction:column;gap:5px;width:100%;max-width:290px}
+.feat{background:var(--card);border:1px solid var(--border);border-radius:9px;padding:8px 13px;font-size:12px;color:var(--muted);text-align:left}
+.feat b{color:var(--text)}
+
+#s-create{overflow-y:auto}
+.cr{padding:18px 18px 100px}
+.cr h2{font-size:17px;font-weight:700;margin-bottom:16px}
+.fl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+.mb{margin-bottom:14px}
+.fi{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 13px;color:var(--text);font-size:14px;outline:none;-webkit-appearance:none;appearance:none}
+.fi:focus{border-color:var(--accent)}
+.av-row{display:flex;gap:7px;flex-wrap:wrap}
+.av-o{width:48px;height:48px;border-radius:50%;border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;background:var(--card2);transition:border-color .2s,transform .15s}
+.av-o.sel{border-color:var(--gold);transform:scale(1.1)}
+.pr{display:flex;gap:6px;flex-wrap:wrap}
+.pp{background:var(--card2);border:1px solid var(--border);border-radius:18px;padding:6px 12px;cursor:pointer;font-size:12px;transition:all .18s;white-space:nowrap}
+.pp.sel{border-color:var(--accent);background:rgba(199,125,255,.13);color:var(--accent)}
+.og{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.oc{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 11px;cursor:pointer;transition:all .18s}
+.oc.sel{border-color:var(--accent);background:rgba(199,125,255,.09)}
+.oi{font-size:16px;margin-bottom:3px}.on{font-size:12px;font-weight:600}.od{font-size:10px;color:var(--muted);margin-top:1px}
+.cr-foot{position:fixed;bottom:0;width:100%;max-width:400px;padding:14px 18px;background:linear-gradient(transparent,var(--bg) 45%);z-index:20}
+.drow{display:flex;gap:7px}
+
+#s-game{overflow:hidden}
+.ghdr{padding:11px 13px 9px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.cinfo{display:flex;align-items:center;gap:8px}
+.cav{width:36px;height:36px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid var(--accent);flex-shrink:0}
+.cn{font-size:13px;font-weight:700}.cj{font-size:10px;color:var(--muted)}
+.ab{background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.3);color:var(--gold);padding:4px 10px;border-radius:18px;font-size:12px;font-weight:700}
+.pbar{height:3px;background:var(--border);flex-shrink:0}
+.pfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--blue));transition:width .5s}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);background:var(--card2);border-bottom:1px solid var(--border);flex-shrink:0}
+.sc{padding:7px 2px;text-align:center;border-right:1px solid var(--border)}
+.sc:last-child{border-right:none}
+.si{font-size:11px}.sv{font-size:13px;font-weight:700;margin:1px 0}.sl{font-size:8px;color:var(--muted);text-transform:uppercase}
+.gbody{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+
+/* Event image */
+.ev-img-wrap{border-radius:14px;overflow:hidden;height:160px;background:var(--card2);position:relative;flex-shrink:0}
+.ev-img{width:100%;height:100%;object-fit:cover;display:block;transition:opacity .4s}
+.ev-img-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(13,13,20,.85));pointer-events:none}
+.ev-img-tag{position:absolute;bottom:10px;left:12px;font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.ev-img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;background:var(--card2)}
+
+.evc{background:var(--card);border-radius:14px;padding:15px;border:1px solid var(--border);position:relative;overflow:hidden;flex-shrink:0}
+.evbar{position:absolute;top:0;left:0;right:0;height:3px}
+.evtag{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;font-weight:700}
+.evtxt{font-size:14px;line-height:1.72;font-weight:500}
+.fxrow{display:flex;flex-wrap:wrap;gap:4px;margin-top:9px}
+.fx{font-size:10px;padding:2px 8px;border-radius:18px;font-weight:600}
+.fp{background:rgba(6,214,160,.13);color:var(--green);border:1px solid rgba(6,214,160,.2)}
+.fn{background:rgba(239,71,111,.13);color:var(--red);border:1px solid rgba(239,71,111,.2)}
+
+.chs{display:flex;flex-direction:column;gap:6px}
+.cbtn{background:var(--card2);border:1px solid var(--border);border-radius:11px;padding:11px 13px;color:var(--text);font-size:13px;cursor:pointer;text-align:left;display:flex;align-items:flex-start;gap:8px;transition:all .18s;width:100%}
+.cbtn:not(:disabled):hover,.cbtn:not(:disabled):active{background:rgba(199,125,255,.1);border-color:var(--accent)}
+.cbtn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+.ci{font-size:16px;flex-shrink:0;margin-top:1px}.ct{flex:1;line-height:1.42}.ch{font-size:10px;color:var(--muted);margin-top:2px}
+
+.da{text-align:center;padding:4px 0 8px}
+.dbtn{background:linear-gradient(135deg,#073b4c,var(--blue));color:#fff;border:none;padding:13px 30px;border-radius:50px;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:transform .12s}
+.dbtn:active{transform:scale(.94)}
+.dbtn:disabled{opacity:.4;cursor:not-allowed}
+.dres{margin-top:10px;font-size:13px;color:var(--muted);min-height:44px;line-height:1.6;white-space:pre-wrap}
+.next-btn{background:linear-gradient(135deg,var(--a2),var(--accent));color:#fff;border:none;padding:11px 26px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;display:none}
+.next-btn:active{transform:scale(.96)}
+
+#s-result{padding:22px;gap:13px;overflow-y:auto}
+.rav{width:72px;height:72px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:36px;border:3px solid var(--gold);margin:0 auto}
+.rt{font-size:21px;font-weight:800;text-align:center}.rs{font-size:12px;color:var(--muted);text-align:center}
+.fst-g{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.fst{background:var(--card);border-radius:11px;padding:12px;text-align:center}
+.fstv{font-size:19px;font-weight:800;color:var(--gold)}.fstl{font-size:10px;color:var(--muted);margin-top:2px}
+.loglist{background:var(--card);border-radius:12px;padding:13px;display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto}
+.li{display:flex;gap:8px;align-items:flex-start}
+.la{font-size:10px;color:var(--gold);font-weight:700;min-width:28px;flex-shrink:0;padding-top:1px}
+.lt{font-size:12px;color:var(--muted);line-height:1.5}
+
+.tag-love{color:#ff6b9d}.bar-love{background:linear-gradient(90deg,#ff6b9d,#c77dff)}
+.tag-school{color:#4cc9f0}.bar-school{background:linear-gradient(90deg,#4cc9f0,#7b2fff)}
+.tag-work{color:#ffd166}.bar-work{background:linear-gradient(90deg,#ffd166,#f4a261)}
+.tag-life{color:#06d6a0}.bar-life{background:linear-gradient(90deg,#06d6a0,#118ab2)}
+.tag-family{color:#c77dff}.bar-family{background:linear-gradient(90deg,#c77dff,#ff6b9d)}
+.tag-money{color:#ffd166}.bar-money{background:linear-gradient(90deg,#f4a261,#ffd166)}
+.tag-health{color:#06d6a0}.bar-health{background:linear-gradient(90deg,#06d6a0,#4cc9f0)}
+.tag-trouble{color:#ef476f}.bar-trouble{background:linear-gradient(90deg,#ef476f,#c77dff)}
+.tag-chance{color:#c77dff}.bar-chance{background:linear-gradient(90deg,#c77dff,#7b2fff)}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.su{animation:slideUp .36s ease}
+@keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-18deg)}50%{transform:rotate(18deg)}80%{transform:rotate(-10deg)}}
+.shk{animation:shake .55s}
+</style>
+
+<div id="app">
+
+<div id="s-title" class="screen active">
+  <div style="font-size:28px;letter-spacing:8px;opacity:.5">💎✦💎</div>
+  <div><div class="logo">リアル人生ゲーム</div><div class="logo-sub">Complete Life Simulator v6 with Images</div></div>
+  <div class="t-desc">幼稚園から老後まで、60以上のリアルイベント。各イベントにリアル画像付き。自分で選択し、サイコロで運命を切り拓く。</div>
+  <button class="btn" onclick="show('create')">✦ 人生を始める</button>
+  <div class="feats">
+    <div class="feat">🖼️ <b>各イベントに画像表示</b>：リアルな場面が目に浮かぶ</div>
+    <div class="feat">💕 <b>恋愛30種以上</b>：初恋・婚活・妊活・離婚まで</div>
+    <div class="feat">⚖️ <b>社会問題</b>：パワハラ・セクハラ・裁判・示談</div>
+    <div class="feat">👨‍👩‍👧 <b>家族</b>：介護・相続・子育て・看取り</div>
+  </div>
+</div>
+
+<div id="s-create" class="screen">
+<div class="cr">
+  <h2>キャラクター設定</h2>
+  <div class="mb"><div class="fl">アバター</div>
+    <div class="av-row" id="av-row">
+      <div class="av-o sel" onclick="selAv(this,'👦')">👦</div>
+      <div class="av-o" onclick="selAv(this,'👧')">👧</div>
+      <div class="av-o" onclick="selAv(this,'🧑')">🧑</div>
+      <div class="av-o" onclick="selAv(this,'🐱')">🐱</div>
+      <div class="av-o" onclick="selAv(this,'🦊')">🦊</div>
+    </div>
+  </div>
+  <div class="mb"><div class="fl">性別</div>
+    <div class="pr" id="gender-row">
+      <div class="pp sel" onclick="selPill('gender-row',this,'男性')">男性</div>
+      <div class="pp" onclick="selPill('gender-row',this,'女性')">女性</div>
+      <div class="pp" onclick="selPill('gender-row',this,'その他')">その他</div>
+    </div>
+  </div>
+  <div class="mb"><div class="fl">名前</div>
+    <input class="fi" id="char-name" type="text" placeholder="名前を入力..." maxlength="12"/>
+  </div>
+  <div class="mb"><div class="fl">生まれ年・月・日</div>
+    <div class="drow">
+      <select class="fi" id="by" style="flex:1.5"></select>
+      <select class="fi" id="bm" style="flex:1"></select>
+      <select class="fi" id="bd" style="flex:1"></select>
+    </div>
+  </div>
+  <div class="mb"><div class="fl">血液型</div>
+    <div class="pr" id="blood-row">
+      <div class="pp sel" onclick="selPill('blood-row',this,'A型')">A型</div>
+      <div class="pp" onclick="selPill('blood-row',this,'B型')">B型</div>
+      <div class="pp" onclick="selPill('blood-row',this,'O型')">O型</div>
+      <div class="pp" onclick="selPill('blood-row',this,'AB型')">AB型</div>
+    </div>
+  </div>
+  <div class="mb drow">
+    <div style="flex:1"><div class="fl">父の出身地</div>
+      <select class="fi" id="dad"><option>東京</option><option>大阪</option><option>京都</option><option>北海道</option><option>沖縄</option><option>福岡</option><option>名古屋</option><option>仙台</option><option>広島</option><option>海外</option><option>地方</option></select>
+    </div>
+    <div style="flex:1"><div class="fl">母の出身地</div>
+      <select class="fi" id="mom"><option>東京</option><option>大阪</option><option>京都</option><option>北海道</option><option>沖縄</option><option>福岡</option><option>名古屋</option><option>仙台</option><option>広島</option><option>海外</option><option>地方</option></select>
+    </div>
+  </div>
+  <div class="mb"><div class="fl">家庭の裕福さ</div>
+    <div class="og" id="wealth-grid">
+      <div class="oc sel" onclick="selGrid('wealth-grid',this,'貧困家庭',80)"><div class="oi">🏚️</div><div class="on">貧困家庭</div><div class="od">苦労するが逞しく</div></div>
+      <div class="oc" onclick="selGrid('wealth-grid',this,'普通の家庭',300)"><div class="oi">🏠</div><div class="on">普通の家庭</div><div class="od">平均的な環境</div></div>
+      <div class="oc" onclick="selGrid('wealth-grid',this,'裕福な家庭',800)"><div class="oi">🏘️</div><div class="on">裕福な家庭</div><div class="od">チャンスが多い</div></div>
+      <div class="oc" onclick="selGrid('wealth-grid',this,'超富裕層',3000)"><div class="oi">🏰</div><div class="on">超富裕層</div><div class="od">何でも手に入るが…</div></div>
+    </div>
+  </div>
+  <div class="mb"><div class="fl">職業志望</div>
+    <div class="og" id="job-grid">
+      <div class="oc sel" onclick="selGrid('job-grid',this,'会社員','stable')"><div class="oi">💼</div><div class="on">会社員</div><div class="od">安定した人生</div></div>
+      <div class="oc" onclick="selGrid('job-grid',this,'フリーランス','free')"><div class="oi">💻</div><div class="on">フリーランス</div><div class="od">自由と孤独</div></div>
+      <div class="oc" onclick="selGrid('job-grid',this,'起業家','venture')"><div class="oi">🚀</div><div class="on">起業家</div><div class="od">ハイリスク</div></div>
+      <div class="oc" onclick="selGrid('job-grid',this,'クリエイター','creative')"><div class="oi">🎨</div><div class="on">クリエイター</div><div class="od">夢を追う</div></div>
+    </div>
+  </div>
+  <div class="mb"><div class="fl">性格タイプ</div>
+    <div class="pr" id="pers-row">
+      <div class="pp sel" onclick="selPill('pers-row',this,'外向型')">外向型</div>
+      <div class="pp" onclick="selPill('pers-row',this,'内向型')">内向型</div>
+      <div class="pp" onclick="selPill('pers-row',this,'野心家')">野心家</div>
+      <div class="pp" onclick="selPill('pers-row',this,'ロマンチスト')">ロマンチスト</div>
+      <div class="pp" onclick="selPill('pers-row',this,'慎重派')">慎重派</div>
+    </div>
+  </div>
+</div>
+<div class="cr-foot">
+  <button class="btn" onclick="startGame()" style="max-width:100%">この設定で人生を始める →</button>
+</div>
+</div>
+
+<div id="s-game" class="screen">
+  <div class="ghdr">
+    <div class="cinfo">
+      <div class="cav" id="g-av">👦</div>
+      <div><div class="cn" id="g-nm">—</div><div class="cj" id="g-jb">—</div></div>
+    </div>
+    <div class="ab" id="g-age">0歳</div>
+  </div>
+  <div class="pbar"><div class="pfill" id="prog" style="width:0%"></div></div>
+  <div class="stats">
+    <div class="sc"><div class="si">💰</div><div class="sv" id="sm">0</div><div class="sl">貯金</div></div>
+    <div class="sc"><div class="si">❤️</div><div class="sv" id="sh">100</div><div class="sl">健康</div></div>
+    <div class="sc"><div class="si">😊</div><div class="sv" id="sha">70</div><div class="sl">幸福</div></div>
+    <div class="sc"><div class="si">💕</div><div class="sv" id="sl2">0</div><div class="sl">恋愛</div></div>
+    <div class="sc"><div class="si">⚡</div><div class="sv" id="ss">50</div><div class="sl">精神</div></div>
+  </div>
+  <div class="gbody" id="gbody">
+    <!-- image area -->
+    <div class="ev-img-wrap su" id="ev-img-wrap">
+      <div class="ev-img-placeholder" id="ev-img-ph">🌟</div>
+      <img id="ev-img" class="ev-img" style="display:none;opacity:0" alt=""/>
+      <div class="ev-img-overlay"></div>
+      <div class="ev-img-tag" id="ev-img-tag">イベント</div>
+    </div>
+    <!-- text card -->
+    <div class="evc su" id="evc">
+      <div class="evbar bar-life" id="evbar"></div>
+      <div class="evtag tag-life" id="evtag">イベント</div>
+      <div class="evtxt" id="evtxt">人生が始まります...</div>
+      <div class="fxrow" id="evfx"></div>
+    </div>
+    <div class="chs" id="chs"></div>
+    <div class="da" id="da" style="display:none">
+      <button class="dbtn" id="dbtn" onclick="rollDice()">🎲 サイコロを振る</button>
+      <div class="dres" id="dres"></div>
+      <button class="next-btn" id="next-btn" onclick="doNext()">次へ進む →</button>
+    </div>
+  </div>
+</div>
+
+<div id="s-result" class="screen">
+  <div class="rav" id="r-av">👦</div>
+  <div class="rt" id="r-t">—</div>
+  <div class="rs" id="r-s">—</div>
+  <div class="fst-g" id="r-stats"></div>
+  <div><div class="fl" style="margin-bottom:7px">📜 人生の記録</div>
+    <div class="loglist" id="r-log"></div>
+  </div>
+  <button class="btn" onclick="show('title')" style="align-self:center;max-width:240px;margin-top:6px">もう一度挑戦する</button>
+</div>
+
+</div>
+
+<script>
+/* ── IMAGE POOLS per category ── */
+/* Using Unsplash Source (free, no API key needed) with curated keywords */
+const IMG = {
+  'birth':    ['newborn baby hospital','baby birth family joy','newborn infant hospital'],
+  'toddler':  ['toddler walking first steps','baby learning walk','cute toddler home'],
+  'kindergarten':['kindergarten children play','preschool kids sandbox','kindergarten classroom japan'],
+  'love_child':  ['children friendship park','kids playing together japan','elementary school friends'],
+  'elementary':  ['elementary school japan entrance','school backpack children japan','japanese school children'],
+  'friendship':  ['children friends park japan','kids playing outside sunny','school friends laughing'],
+  'confession':  ['love letter child handmade','kids passing note class','children friendship letter'],
+  'hobby':       ['piano lesson child','children soccer practice','kids art class painting'],
+  'bullying':    ['children support friendship','kind child helping friend','school children kindness'],
+  'trip_love':   ['school trip japan night','campfire students night','school excursion japan stars'],
+  'junior_high': ['junior high school japan','middle school students club','japanese students sports'],
+  'senpai':      ['high school club senpai','sports club japan senior','japanese school sports team'],
+  'sns':         ['teenager smartphone stress','teen phone social media','teen looking at phone worried'],
+  'valentine':   ['chocolate gift valentines japan','valentine gift box heart','valentines day couple'],
+  'dating':      ['young couple date japan','teens dating holding hands','young love couple japan'],
+  'breakup':     ['sad teen breakup alone','young person sad rain window','breakup sadness teen'],
+  'festival':    ['school festival japan night','cultural festival japan','bunkasai japan school'],
+  'exam':        ['university entrance exam japan','student studying desk night','exam hall pencil paper'],
+  'college_love':['college campus couple japan','university students japan spring','campus romance spring'],
+  'volunteer':   ['overseas volunteer asia','volunteer work cambodia','international volunteer helping'],
+  'travel_couple':['couple travel beach japan','young couple travel resort','beach vacation couple'],
+  'long_distance':['long distance relationship phone','couple goodbye station japan','airport farewell couple'],
+  'job_hunting': ['job hunting suit japan','shushoku katudou japan','graduate interview japan'],
+  'work_start':  ['new employee japan office','first day work office japan','young businessperson japan'],
+  'power_harassment':['workplace stress japan','office harassment dark','overwork stress japan office'],
+  'work_romance':['office couple japan','coworkers eating ramen night','office night couple'],
+  'sexual_harassment':['workplace consultation support','woman lawyer office japan','report workplace issue'],
+  'career':      ['career change japan','job interview businessman','business meeting japan'],
+  'moral_harassment':['couple arguing home','relationship conflict serious','domestic dispute conversation'],
+  'cohabitation':['apartment couple moving in','young couple new home japan','couple carrying boxes new home'],
+  'matchmaking': ['marriage hunting app japan','konkatsu party japan','matchmaking meeting japan'],
+  'proposal':    ['proposal ring restaurant night','man proposing woman dinner','engagement proposal romantic'],
+  'wedding':     ['japanese wedding ceremony','bride groom church japan','wedding reception japan'],
+  'fertility':   ['couple hospital fertility','infertility treatment couple hospital','couple waiting clinic'],
+  'pregnancy':   ['pregnant woman happy couple','positive pregnancy test joy','maternity couple happy'],
+  'childcare':   ['new parent baby japan home','father baby ikuji japan','young family baby home japan'],
+  'couple_crisis':['couple talking seriously','husband wife conversation home','couple discussion night'],
+  'parents_ill': ['elderly parent hospital visit','family hospital bedside japan','son daughter visiting parent'],
+  'caregiving':  ['family caregiving elderly japan','caregiver helping elderly','elder care family home'],
+  'ex_contact':  ['smartphone message notification night','checking phone late night alone','late night phone glow'],
+  'career_change':['businessperson crossroads decision','career change new start','resignation letter desk'],
+  'lawsuit':     ['lawyer court japan','legal consultation attorney','courthouse japan exterior'],
+  'forties_peak':['successful businessperson 40s','mid career promotion','business success handshake'],
+  'gratitude':   ['middle aged couple anniversary','couple wine restaurant anniversary','married couple smile'],
+  'puberty_child':['teenager moody room door','teen angry slammed door','adolescent room alone'],
+  'affair':      ['person phone hiding message','secret relationship hiding','temptation workplace serious'],
+  'investment':  ['investment stock chart japan','real estate property investment','financial planning advisor'],
+  'children_exam':['high school study exam japan','student studying library','exam preparation family'],
+  'menopause':   ['yoga wellness middle aged woman','meditation health wellness','health checkup doctor'],
+  'health_50':   ['health checkup doctor 50s','medical examination middle aged','gym workout 50s adult'],
+  'empty_nest':  ['parent waving goodbye door','child leaving home adult','family farewell door step'],
+  'rekindled':   ['mature couple restaurant wine','middle aged couple dinner','couple over 50 happy'],
+  'funeral':     ['family graveside ceremony japan','funeral flower white japan','cemetery memorial japan'],
+  'inheritance': ['family meeting serious discuss','legal inheritance family','documents family meeting'],
+  'love_senior': ['elderly couple walking sunset','senior couple holding hands','mature couple happy garden'],
+  'retirement':  ['retirement party office japan','farewell bouquet flowers office','retirement celebration japan'],
+  'second_life': ['senior travel world adventure','elderly couple backpacking','retired couple traveling'],
+  'senior_health':['elderly doctor checkup','senior health clinic','older adult exercise wellness'],
+  'grandchild':  ['grandparent grandchild japan','grandfather grandmother baby','grandparents holding grandchild'],
+  'partner_ill': ['elderly couple hospital hand hold','senior couple bedside hold hand','hospital elderly hand hold'],
+  'life_end':    ['sunset golden hour peaceful','elderly person peaceful garden','serene sunset ocean old'],
+};
+
+const FALLBACK_EMOJI = {
+  'tag-love':'💕','tag-school':'📚','tag-work':'💼','tag-life':'🌟',
+  'tag-family':'👨‍👩‍👧','tag-money':'💰','tag-health':'❤️','tag-trouble':'⚠️','tag-chance':'✨'
+};
+
+function getImgUrl(key) {
+  const pool = IMG[key] || IMG['life_end'];
+  const q = pool[Math.floor(Math.random() * pool.length)];
+  // Unsplash Source – free, no key required
+  return `https://source.unsplash.com/800x400/?${encodeURIComponent(q)}`;
+}
+
+function loadEventImage(imgKey, tagClass, tagLabel) {
+  const wrap = document.getElementById('ev-img-wrap');
+  const ph   = document.getElementById('ev-img-ph');
+  const img  = document.getElementById('ev-img');
+  const itag = document.getElementById('ev-img-tag');
+
+  itag.textContent = tagLabel;
+  // Show emoji placeholder first
+  ph.textContent = FALLBACK_EMOJI[tagClass] || '🌟';
+  ph.style.display = 'flex';
+  img.style.display = 'none';
+  img.style.opacity = '0';
+
+  const url = getImgUrl(imgKey);
+  const tmp = new Image();
+  tmp.onload = () => {
+    img.src = url;
+    img.style.display = 'block';
+    ph.style.display = 'none';
+    requestAnimationFrame(() => { img.style.opacity = '1'; });
+  };
+  tmp.onerror = () => { /* keep emoji placeholder */ };
+  tmp.src = url;
+}
+
+/* ── CONFIG & STATE ── */
+let C={avatar:'👦',gender:'男性',blood:'A型',personality:'外向型',wealthLabel:'普通の家庭',startMoney:300,job:'会社員',jobType:'stable',dad:'東京',mom:'東京'};
+let ST={};
+let EVS=[];
+let ei=0;
+let LOG=[];
+
+(()=>{
+  const y=document.getElementById('by');
+  for(let i=2006;i>=1945;i--){const o=document.createElement('option');o.value=i;o.textContent=i+'年';y.appendChild(o);}
+  const m=document.getElementById('bm');
+  for(let i=1;i<=12;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'月';m.appendChild(o);}
+  const d=document.getElementById('bd');
+  for(let i=1;i<=31;i++){const o=document.createElement('option');o.value=i;o.textContent=i+'日';d.appendChild(o);}
+})();
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('s-'+id).classList.add('active');}
+function selAv(el,e){document.querySelectorAll('.av-o').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');C.avatar=e;}
+function selPill(rid,el,v){document.getElementById(rid).querySelectorAll('.pp').forEach(p=>p.classList.remove('sel'));el.classList.add('sel');if(rid==='gender-row')C.gender=v;else if(rid==='blood-row')C.blood=v;else if(rid==='pers-row')C.personality=v;}
+function selGrid(gid,el,v,v2){document.getElementById(gid).querySelectorAll('.oc').forEach(c=>c.classList.remove('sel'));el.classList.add('sel');if(gid==='wealth-grid'){C.wealthLabel=v;C.startMoney=v2;}else if(gid==='job-grid'){C.job=v;C.jobType=v2;}}
+function gp(rid){return document.querySelector('#'+rid+' .pp.sel')?.textContent||'';}
+function clamp(v,lo=0,hi=100){return Math.max(lo,Math.min(hi,Math.round(v)));}
+
+/* ── EVENTS (imgKey added to each) ── */
+function buildEvs(){
+  const isFem=C.gender==='女性';
+  const w=C.wealthLabel;
+  const PM=['蓮','陸','朔','颯太','海斗','湊','律','大翔','悠真','一輝','拓也','健太'];
+  const PF=['葵','咲','凛','陽菜','結衣','莉子','澪','柚','栞','花','七海','美咲'];
+  const P=i=>isFem?PM[i%PM.length]:PF[i%PF.length];
+
+  return [
+    {age:0,tag:'誕生',tc:'tag-life',bar:'bar-life',img:'birth',type:'info',
+     txt:`${C.dad}出身のお父さんと${C.mom}出身のお母さんのもとに${C.gender}の子として誕生。血液型${C.blood}。元気な産声が病室に響いた。`},
+
+    {age:2,tag:'幼児期',tc:'tag-life',bar:'bar-life',img:'toddler',type:'info',
+     txt:'初めてヨチヨチ歩きで「まんま！」と言葉を発した日、お母さんが泣いて喜んだ。'},
+
+    {age:4,tag:'幼稚園',tc:'tag-school',bar:'bar-school',img:'kindergarten',type:'choice',
+     txt:'幼稚園初日。砂場で一人で遊んでいる子がいる。あなたはどうする？',
+     choices:[
+       {icon:'🤝',txt:'「いっしょにあそぼ！」と声をかける',hint:'勇気の一歩',fx:{happy:15,love:10,spirit:10}},
+       {icon:'👀',txt:'恥ずかしくて遠くから見る',hint:'シャイ…',fx:{happy:5}},
+       {icon:'👩‍🏫',txt:'先生に頼む',hint:'大人に頼る',fx:{happy:8,spirit:5}}
+     ]},
+
+    {age:5,tag:'はじめての恋？',tc:'tag-love',bar:'bar-love',img:'love_child',type:'choice',
+     txt:`幼稚園でいつも隣に座る${P(0)}${isFem?'くん':'ちゃん'}にドキドキしている。どうする？`,
+     choices:[
+       {icon:'💌',txt:'お手紙を書いてわたす',hint:'ピュアな気持ち',fx:{happy:20,love:25}},
+       {icon:'👀',txt:'遠くからそっと見つめるだけ',hint:'切ない片思い',fx:{happy:8,love:12}},
+       {icon:'🎨',txt:'似顔絵を描いてプレゼント',hint:'クリエイティブ！',fx:{happy:18,love:20}}
+     ]},
+
+    {age:6,tag:'小学校入学',tc:'tag-school',bar:'bar-school',img:'elementary',type:'dice',
+     txt:w==='超富裕層'?'名門私立小学校に入学。周りはみんなお坊ちゃまお嬢さまだ。':
+         w==='貧困家庭'?'ランドセルはお下がりだが気にしない！公立小学校に入学！':
+         '新品のランドセルを背負って地元の小学校へ。ドキドキの入学式！',
+     good:{txt:'クラスで一番の友達を作った！毎日が楽しくてたまらない。',fx:{happy:20,love:12,spirit:15}},
+     bad:{txt:'仲のいい子がいないクラスに…。でも本を読むのが好きになった。',fx:{happy:-5,spirit:12}}},
+
+    {age:7,tag:'友情の試練',tc:'tag-life',bar:'bar-life',img:'friendship',type:'choice',
+     txt:'仲良しの友達から「もうあそばない」と言われてしまった。',
+     choices:[
+       {icon:'💬',txt:'勇気を出して「なんで？」と聞く',hint:'向き合う',fx:{happy:10,spirit:15,love:5}},
+       {icon:'😢',txt:'家で一人泣く',hint:'気持ちを出す',fx:{happy:-5,spirit:5}},
+       {icon:'🆕',txt:'新しい友達を作ろうと頑張る',hint:'前向きに',fx:{happy:12,spirit:10}}
+     ]},
+
+    {age:8,tag:'はじめての告白',tc:'tag-love',bar:'bar-love',img:'confession',type:'choice',
+     txt:`${P(1)}${isFem?'くん':'ちゃん'}から「すきだよ」という手紙が届いた！`,
+     choices:[
+       {icon:'💕',txt:'「わたし（ぼく）もすき！」と答える',hint:'ピュアな恋',fx:{happy:25,love:30}},
+       {icon:'🙈',txt:'恥ずかしくて逃げる',hint:'子供らしい反応',fx:{happy:8,love:10}},
+       {icon:'😢',txt:'「ごめんなさい」と正直に断る',hint:'誠実に',fx:{happy:5,love:-5,spirit:5}}
+     ]},
+
+    {age:9,tag:'習い事',tc:'tag-school',bar:'bar-school',img:'hobby',type:'choice',
+     txt:'習い事を始める時期。何に打ち込む？',
+     choices:[
+       {icon:'⚽',txt:'スポーツ（サッカー・水泳など）',hint:'体を鍛える',fx:{health:20,happy:15,spirit:10,money:-15}},
+       {icon:'🎹',txt:'ピアノ・音楽系',hint:'感性を磨く',fx:{happy:18,love:10,money:-20}},
+       {icon:'📚',txt:'塾・勉強中心',hint:'将来への投資',fx:{happy:5,spirit:10,money:30}},
+       {icon:'🎨',txt:'絵画・アート系',hint:'個性を育てる',fx:{happy:20,love:8,money:-10}}
+     ]},
+
+    {age:10,tag:'いじめ問題',tc:'tag-trouble',bar:'bar-trouble',img:'bullying',type:'choice',
+     txt:'クラスで仲間はずれにされている子がいる。自分はどうする？',
+     choices:[
+       {icon:'🛡️',txt:'「やめなよ」と声を上げる',hint:'勇気ある正義感',fx:{happy:15,spirit:20,love:15}},
+       {icon:'🤝',txt:'こっそりその子に話しかける',hint:'優しい行動',fx:{happy:12,spirit:15,love:12}},
+       {icon:'😔',txt:'見て見ぬふりをする',hint:'後悔するかも',fx:{happy:-8,spirit:-10}}
+     ]},
+
+    {age:11,tag:'修学旅行の恋',tc:'tag-love',bar:'bar-love',img:'trip_love',type:'choice',
+     txt:`修学旅行で${P(2)}${isFem?'くん':'ちゃん'}と同じ班に。キャンプファイヤーで隣に座り、手が触れそうに…`,
+     choices:[
+       {icon:'🔥',txt:'勇気を出して手を繋ぐ',hint:'ドキドキの夜',fx:{happy:25,love:35}},
+       {icon:'💌',txt:'帰ったら手紙で気持ちを伝える',hint:'じっくり作戦',fx:{happy:20,love:28}},
+       {icon:'🌌',txt:'何もせず夜空を見上げる',hint:'切ない片思い',fx:{happy:10,love:15}}
+     ]},
+
+    {age:12,tag:'中学入学・部活',tc:'tag-school',bar:'bar-school',img:'junior_high',type:'choice',
+     txt:'中学校に入学！部活を選ぶ。青春をどこに捧げる？',
+     choices:[
+       {icon:'⚽',txt:'運動部（サッカー・バスケ・バレー）',hint:'汗と涙の青春',fx:{health:25,happy:20,spirit:20,money:-5}},
+       {icon:'🎵',txt:'文化部（吹奏楽・演劇・美術）',hint:'感受性豊かに',fx:{happy:22,love:15,money:-5}},
+       {icon:'📖',txt:'帰宅部で自分時間を大切に',hint:'孤高の選択',fx:{happy:10,spirit:15,money:20}}
+     ]},
+
+    {age:13,tag:'先輩への憧れ',tc:'tag-love',bar:'bar-love',img:'senpai',type:'dice',
+     txt:`部活の${P(3)}先輩がまぶしい。ドキドキが止まらない。この恋の行方は？`,
+     good:{txt:`${P(3)}先輩から「一緒に帰ろう」と誘われた！距離がぐっと縮まる。`,fx:{happy:30,love:40}},
+     bad:{txt:`${P(3)}先輩にはすでに付き合っている人が…。初めての切なさ。`,fx:{happy:-15,love:-5,spirit:12}}},
+
+    {age:13,tag:'SNSトラブル',tc:'tag-trouble',bar:'bar-trouble',img:'sns',type:'choice',
+     txt:'グループLINEで自分の悪口が書かれているのを発見してしまった。',
+     choices:[
+       {icon:'📢',txt:'先生にスクリーンショットを見せて相談',hint:'大人を頼る',fx:{happy:10,spirit:20}},
+       {icon:'💬',txt:'本人に直接「なんでこんなこと書いたの？」',hint:'正面突破',fx:{happy:5,spirit:25}},
+       {icon:'😶',txt:'気づかないふりをして流す',hint:'精神的につらい',fx:{happy:-15,spirit:-10}}
+     ]},
+
+    {age:14,tag:'バレンタイン',tc:'tag-love',bar:'bar-love',img:'valentine',type:'choice',
+     txt:`${isFem?'ホワイトデーに':'バレンタインデーに'}${P(4)}${isFem?'くん':'ちゃん'}からチョコ（お返し）をもらった。`,
+     choices:[
+       {icon:'❤️',txt:'「好きです！」とはっきり伝える',hint:'直球勝負',fx:{happy:30,love:40}},
+       {icon:'😊',txt:'「ありがとう」だけ言って様子を見る',hint:'慎重に',fx:{happy:15,love:20}},
+       {icon:'🙅',txt:'あえて距離を置く',hint:'友情を優先',fx:{happy:5,love:-5}}
+     ]},
+
+    {age:15,tag:'はじめての交際',tc:'tag-love',bar:'bar-love',img:'dating',type:'choice',
+     txt:`${P(4)}${isFem?'くん':'ちゃん'}と正式に付き合い始めた！どんな関係を築く？`,
+     choices:[
+       {icon:'🌹',txt:'毎日連絡してラブラブ全開',hint:'甘い日々',fx:{happy:35,love:35,money:-10}},
+       {icon:'🤝',txt:'友達みたいな自然な関係で',hint:'長続きしそう',fx:{happy:25,love:28,spirit:10}},
+       {icon:'📚',txt:'交際しながら勉強も頑張る',hint:'バランス型',fx:{happy:18,love:20,money:15}}
+     ]},
+
+    {age:16,tag:'はじめての失恋',tc:'tag-love',bar:'bar-love',img:'breakup',type:'choice',
+     txt:`突然「別れよう、他に好きな人ができた」と告げられた。`,
+     choices:[
+       {icon:'😭',txt:'泣きながらも「わかった」と受け入れる',hint:'清く散る',fx:{happy:-20,love:-10,spirit:15}},
+       {icon:'💔',txt:'「どうして！？」と食い下がる',hint:'未練タラタラ',fx:{happy:-25,love:-15,spirit:5}},
+       {icon:'✊',txt:'悔しさをバネに自分磨きを始める',hint:'最高の復讐',fx:{happy:-10,love:-5,spirit:25,health:10}}
+     ]},
+
+    {age:17,tag:'文化祭の告白',tc:'tag-love',bar:'bar-love',img:'festival',type:'dice',
+     txt:`文化祭の夜、${P(5)}${isFem?'くん':'さん'}と二人きりの瞬間が訪れた。サイコロで運命が決まる！`,
+     good:{txt:'「ずっと好きだった」→YES！最高の文化祭になった。',fx:{happy:35,love:45}},
+     bad:{txt:'勇気を出したが「ごめんなさい…」。前に進もう。',fx:{happy:-10,love:5,spirit:20}}},
+
+    {age:18,tag:'大学受験',tc:'tag-school',bar:'bar-school',img:'exam',type:'dice',
+     txt:'高校3年間の集大成。第一志望の大学受験当日。サイコロが運命を決める！',
+     good:{txt:'合格！夢の大学への切符を掴んだ！',fx:{happy:35,spirit:25,money:-50}},
+     bad:{txt:'不合格…浪人を決意。来年は絶対に！',fx:{happy:-20,spirit:15,money:-30}}},
+
+    {age:19,tag:'大学の出会い',tc:'tag-love',bar:'bar-love',img:'college_love',type:'choice',
+     txt:`大学のサークルで${P(6)}と出会った。話すたびに楽しくて特別な存在に。`,
+     choices:[
+       {icon:'☕',txt:'「一緒にカフェ行かない？」と誘う',hint:'直接アプローチ',fx:{happy:25,love:40,money:-10}},
+       {icon:'📱',txt:'SNSフォローから徐々に仲良くなる',hint:'現代の距離の縮め方',fx:{happy:20,love:30}},
+       {icon:'🍺',txt:'飲み会で盛り上がるチャンスを狙う',hint:'場の雰囲気で',fx:{happy:22,love:25,health:-5,money:-20}}
+     ]},
+
+    {age:19,tag:'海外ボランティア',tc:'tag-chance',bar:'bar-chance',img:'volunteer',type:'choice',
+     txt:'大学の掲示板に「カンボジア・スタディツアー2週間参加者募集」のポスターが。どうする？',
+     choices:[
+       {icon:'✈️',txt:'参加する！世界を見てみたい',hint:'人生経験に',fx:{happy:35,spirit:30,love:10,money:-80}},
+       {icon:'📚',txt:'勉強が忙しいので今回はパス',hint:'堅実な選択',fx:{happy:5,money:20}},
+       {icon:'🤔',txt:'来年の長期ボランティアに申し込む',hint:'本格的に準備',fx:{happy:15,spirit:15}}
+     ]},
+
+    {age:20,tag:'恋人との旅行',tc:'tag-love',bar:'bar-love',img:'travel_couple',type:'choice',
+     txt:`${P(6)}と付き合って半年。初めての二人旅を計画！どこへ行く？`,
+     choices:[
+       {icon:'🌊',txt:'沖縄・南の島でビーチリゾート',hint:'ロマンチックな旅',fx:{happy:35,love:40,money:-80}},
+       {icon:'♨️',txt:'国内の温泉旅行でゆったりと',hint:'二人でのんびり',fx:{happy:30,love:38,health:10,money:-50}},
+       {icon:'✈️',txt:'思い切って海外旅行へ',hint:'特別な思い出に',fx:{happy:40,love:45,money:-150}}
+     ]},
+
+    {age:21,tag:'遠距離恋愛の危機',tc:'tag-love',bar:'bar-love',img:'long_distance',type:'choice',
+     txt:`${P(6)}が就職で遠方へ。遠距離恋愛になる。どうする？`,
+     choices:[
+       {icon:'💪',txt:'絶対続ける！毎週会いに行く',hint:'愛で距離を超える',fx:{happy:20,love:30,health:-10,money:-100}},
+       {icon:'📱',txt:'ビデオ通話で繋ぎながら様子を見る',hint:'現実的に',fx:{happy:15,love:22,money:-20}},
+       {icon:'💔',txt:'将来を考えて別れを選ぶ',hint:'つらい決断',fx:{happy:-20,love:-15,spirit:15,money:30}}
+     ]},
+
+    {age:22,tag:'就職活動',tc:'tag-work',bar:'bar-work',img:'job_hunting',type:'dice',
+     txt:`就活シーズン。${C.job}として働くための就職活動。サイコロで決まる！`,
+     good:{txt:'第一志望から内定！努力が実った。',fx:{happy:35,spirit:25,money:100}},
+     bad:{txt:'就活が長期化…でもご縁のあった会社から内定。',fx:{happy:5,spirit:10,money:50}}},
+
+    {age:23,tag:'社会人デビュー',tc:'tag-work',bar:'bar-work',img:'work_start',type:'choice',
+     txt:'社会人1年目。理想と現実のギャップに戸惑う日々。気になる先輩が現れた。',
+     choices:[
+       {icon:'💼',txt:'仕事に集中して実力をつける',hint:'プロ意識高め',fx:{happy:15,spirit:20,money:50,health:-10}},
+       {icon:'💕',txt:'先輩に積極的にアピールする',hint:'職場恋愛チャレンジ',fx:{happy:25,love:35,money:10}},
+       {icon:'🍺',txt:'飲み会を通じて人間関係を築く',hint:'社交的に',fx:{happy:20,love:20,health:-10,money:-20}}
+     ]},
+
+    {age:23,tag:'パワーハラスメント',tc:'tag-trouble',bar:'bar-trouble',img:'power_harassment',type:'choice',
+     txt:'上司から毎日「お前は使えない」と怒鳴られる。もう限界が近い。',
+     choices:[
+       {icon:'⚖️',txt:'ハラスメント相談窓口・労基署に訴える',hint:'法的に対応',fx:{happy:10,spirit:20}},
+       {icon:'💬',txt:'信頼できる別の上司や先輩に相談',hint:'社内で解決',fx:{happy:8,spirit:15}},
+       {icon:'🏃',txt:'転職活動を始めて環境を変える',hint:'自分を守る',fx:{happy:15,spirit:10,money:-20}},
+       {icon:'😶',txt:'我慢して耐え続ける',hint:'精神的に危険',fx:{happy:-25,spirit:-30,health:-20}}
+     ]},
+
+    {age:24,tag:'職場恋愛',tc:'tag-love',bar:'bar-love',img:'work_romance',type:'dice',
+     txt:`同期の${P(7)}さんといつの間にか特別な雰囲気に。告白できるか？サイコロで！`,
+     good:{txt:'告白成功！職場でこっそり付き合い始める。',fx:{happy:35,love:45}},
+     bad:{txt:'告白しようとしたら既に好きな人がいると発覚…。',fx:{happy:-15,love:-5,spirit:10}}},
+
+    {age:24,tag:'セクシャルハラスメント',tc:'tag-trouble',bar:'bar-trouble',img:'sexual_harassment',type:'choice',
+     txt:'職場の上司や取引先から不快な言動・身体的な接触を受けた。これはセクハラだと気づいた。',
+     choices:[
+       {icon:'⚖️',txt:'証拠を集めて人事・相談窓口に訴える',hint:'毅然と対応',fx:{happy:15,spirit:30}},
+       {icon:'🛑',txt:'その場ではっきり「やめてください」と拒絶',hint:'直接対処',fx:{happy:10,spirit:25}},
+       {icon:'👩‍⚖️',txt:'弁護士に相談して裁判も視野に入れる',hint:'法的手段へ',fx:{happy:5,spirit:20,money:-30}},
+       {icon:'😔',txt:'誰にも言えず一人で抱える',hint:'絶対に抱え込まないで',fx:{happy:-30,spirit:-35,health:-20}}
+     ]},
+
+    {age:25,tag:'転職か残留か',tc:'tag-work',bar:'bar-work',img:'career',type:'choice',
+     txt:'年収大幅アップの転職オファー。でも恋人との距離が離れてしまう。',
+     choices:[
+       {icon:'💼',txt:'転職してキャリアを優先する',hint:'仕事第一',fx:{happy:15,spirit:15,money:150,love:-15}},
+       {icon:'❤️',txt:'今の職場に残り恋人を選ぶ',hint:'愛を選ぶ',fx:{happy:22,love:25,money:20}},
+       {icon:'🤝',txt:'二人で相談して一緒に新天地へ',hint:'ベストな選択？',fx:{happy:28,love:30,money:80}}
+     ]},
+
+    {age:26,tag:'モラルハラスメント',tc:'tag-trouble',bar:'bar-trouble',img:'moral_harassment',type:'choice',
+     txt:`付き合っている${P(7)}さんから「本当にダメだな」と言葉の暴力が続いている。`,
+     choices:[
+       {icon:'🚪',txt:'別れを決意して関係を終わらせる',hint:'自分を守る決断',fx:{happy:10,spirit:30,love:-20}},
+       {icon:'💬',txt:'「傷ついている」と伝えてカウンセリングを提案',hint:'修復を試みる',fx:{happy:5,spirit:15,love:5}},
+       {icon:'⚖️',txt:'証拠を記録して法的手段も視野に',hint:'毅然と立ち向かう',fx:{happy:8,spirit:20,love:-10}},
+       {icon:'😔',txt:'我慢してしまう',hint:'自己肯定感が下がる',fx:{happy:-25,spirit:-30,love:-15}}
+     ]},
+
+    {age:27,tag:'同棲の提案',tc:'tag-love',bar:'bar-love',img:'cohabitation',type:'choice',
+     txt:'「一緒に住まない？」という話が出てきた。',
+     choices:[
+       {icon:'🏠',txt:'すぐにYES！一緒に部屋を探す',hint:'大きな一歩',fx:{happy:35,love:38,money:-80}},
+       {icon:'⏰',txt:'「もう少し付き合ってから」と慎重に',hint:'焦らない',fx:{happy:15,love:15}},
+       {icon:'💍',txt:'同棲より結婚を先に考えてほしいと伝える',hint:'真剣な気持ち',fx:{happy:20,love:25}}
+     ]},
+
+    {age:28,tag:'婚活スタート',tc:'tag-love',bar:'bar-love',img:'matchmaking',type:'choice',
+     txt:'28歳。なかなかいい出会いがない。婚活をどう進める？',
+     choices:[
+       {icon:'📱',txt:'マッチングアプリに登録する',hint:'現代の出会い方',fx:{happy:15,love:30,money:-10}},
+       {icon:'🎉',txt:'友人の紹介・合コンで出会いを探す',hint:'リアルな出会い',fx:{happy:18,love:25}},
+       {icon:'💒',txt:'結婚相談所に入会する',hint:'本格的に婚活',fx:{happy:12,love:35,money:-50}},
+       {icon:'🙆',txt:'焦らず自然な出会いを待つ',hint:'マイペース',fx:{happy:10,love:10}}
+     ]},
+
+    {age:29,tag:'プロポーズ',tc:'tag-love',bar:'bar-love',img:'proposal',type:'choice',
+     txt:'ついにプロポーズを決意！どんなシチュエーションで伝える？',
+     choices:[
+       {icon:'💍',txt:'高級レストランでサプライズ',hint:'映画のような場面',fx:{happy:40,love:50,money:-30}},
+       {icon:'🌅',txt:'思い出の場所で二人きりで静かに',hint:'真剣な愛の言葉',fx:{happy:38,love:48,money:-5}},
+       {icon:'👪',txt:'両家の食事の席で正式に申し込む',hint:'誠実な方法',fx:{happy:35,love:42,money:-20}}
+     ]},
+
+    {age:30,tag:'結婚式',tc:'tag-family',bar:'bar-family',img:'wedding',type:'choice',
+     txt:'いよいよ結婚式！どんな式にする？',
+     choices:[
+       {icon:'⛪',txt:'豪華なチャペルウェディング',hint:'夢の結婚式',fx:{happy:40,love:35,money:-300}},
+       {icon:'🌿',txt:'アットホームなガーデンウェディング',hint:'温かい雰囲気',fx:{happy:35,love:32,money:-200}},
+       {icon:'📋',txt:'入籍だけのシンプルな結婚',hint:'実用的',fx:{happy:25,love:25,money:-20}}
+     ]},
+
+    {age:31,tag:'妊活スタート',tc:'tag-family',bar:'bar-family',img:'fertility',type:'choice',
+     txt:'子供が欲しいが、なかなか授からない…。',
+     choices:[
+       {icon:'🏥',txt:'不妊治療クリニックに二人で通う',hint:'本格的な妊活',fx:{happy:5,love:20,health:-5,money:-80,spirit:-10}},
+       {icon:'🌿',txt:'生活習慣を改善して自然に任せる',hint:'ゆっくり取り組む',fx:{happy:10,love:15,health:10,money:-10}},
+       {icon:'🌍',txt:'養子縁組・里親も視野に入れる',hint:'愛の形は一つじゃない',fx:{happy:15,love:25,spirit:20}}
+     ]},
+
+    {age:32,tag:'妊活の結果',tc:'tag-family',bar:'bar-family',img:'pregnancy',type:'dice',
+     txt:'不妊治療を1年続けた。今回の結果は…？サイコロで運命が決まる。',
+     good:{txt:'陽性反応！妊娠確認！二人で号泣した。長い闘いがついに実を結んだ。',fx:{happy:50,love:45,spirit:30}},
+     bad:{txt:'今回もダメだった…。治療を続けるか、二人でゆっくり話し合う。',fx:{happy:-20,love:10,spirit:-15,money:-50}}},
+
+    {age:33,tag:'育児スタート',tc:'tag-family',bar:'bar-family',img:'childcare',type:'choice',
+     txt:'子供が生まれた！喜びと同時に、育児と仕事の両立という現実が迫ってくる。',
+     choices:[
+       {icon:'👶',txt:'育休を取って育児に全力',hint:'家族第一',fx:{happy:35,love:30,money:-80,health:-10}},
+       {icon:'💼',txt:'育児と仕事を両立させる',hint:'バランスが鍵',fx:{happy:20,love:20,money:50,health:-20}},
+       {icon:'🤝',txt:'両家の実家にも助けてもらう',hint:'みんなで育てる',fx:{happy:30,love:28,money:-30}}
+     ]},
+
+    {age:34,tag:'夫婦の危機',tc:'tag-love',bar:'bar-love',img:'couple_crisis',type:'choice',
+     txt:'育児疲れで夫婦の会話がなくなってきた。「最近冷たくない？」と言われた。',
+     choices:[
+       {icon:'🍽️',txt:'子供を親に預けてデートする',hint:'二人の時間を',fx:{happy:25,love:35,money:-30}},
+       {icon:'💬',txt:'本音で話し合う時間を作る',hint:'対話が大事',fx:{happy:20,love:30}},
+       {icon:'😔',txt:'忙しいと後回しにしてしまう',hint:'危険なすれ違い',fx:{happy:-15,love:-20}}
+     ]},
+
+    {age:35,tag:'親の体調不良',tc:'tag-family',bar:'bar-family',img:'parents_ill',type:'choice',
+     txt:'実家の父（または母）が倒れたと連絡が来た。介護が必要になるかもしれない。',
+     choices:[
+       {icon:'🏠',txt:'近くに引っ越して介護をサポート',hint:'家族を優先',fx:{happy:15,love:15,money:-100,spirit:-10}},
+       {icon:'🏥',txt:'介護施設を探してプロに任せる',hint:'専門家の力を',fx:{happy:10,money:-150,spirit:5}},
+       {icon:'💼',txt:'仕事を続けながらリモートで支援',hint:'遠距離介護',fx:{happy:5,spirit:-15,money:-50}}
+     ]},
+
+    {age:36,tag:'介護と仕事の限界',tc:'tag-family',bar:'bar-family',img:'caregiving',type:'choice',
+     txt:'親の介護が本格化。仕事と介護の「ダブルケア」で追い詰められそう。',
+     choices:[
+       {icon:'⚙️',txt:'介護休業制度・在宅勤務を駆使する',hint:'制度をフル活用',fx:{happy:10,spirit:15,money:-30}},
+       {icon:'👥',txt:'兄弟姉妹と介護を分担する',hint:'チームで乗り越える',fx:{happy:15,spirit:20,money:-20}},
+       {icon:'💬',txt:'ケアマネージャーに相談する',hint:'専門家の力を',fx:{happy:12,spirit:18,money:-10}},
+       {icon:'😭',txt:'全部一人で抱え込む',hint:'限界が来る前に',fx:{happy:-25,spirit:-30,health:-20}}
+     ]},
+
+    {age:37,tag:'元恋人からの連絡',tc:'tag-love',bar:'bar-love',img:'ex_contact',type:'choice',
+     txt:'昔の恋人から突然「久しぶりに会えない？」とメッセージが届いた。',
+     choices:[
+       {icon:'🚫',txt:'既読スルーで完全に無視',hint:'家族を守る',fx:{happy:10,love:15}},
+       {icon:'💬',txt:'「もう連絡しないで」とはっきり断る',hint:'きっぱりと',fx:{happy:12,love:18,spirit:10}},
+       {icon:'❤️',txt:'パートナーに正直に話す',hint:'信頼を大切に',fx:{happy:15,love:25,spirit:15}},
+       {icon:'🤐',txt:'こっそり返信してしまう…',hint:'危険な橋',fx:{happy:-5,love:-15}}
+     ]},
+
+    {age:38,tag:'キャリアの転換期',tc:'tag-work',bar:'bar-work',img:'career_change',type:'choice',
+     txt:'38歳。このまま続けるか、新しい道に踏み出すか、岐路に立っている。',
+     choices:[
+       {icon:'🚀',txt:'起業・独立に挑戦する',hint:'ハイリスク・ハイリターン',fx:{happy:20,spirit:25,money:-100}},
+       {icon:'💼',txt:'転職してより良い環境を探す',hint:'ステップアップ',fx:{happy:18,spirit:20,money:80}},
+       {icon:'📚',txt:'資格取得や副業で可能性を広げる',hint:'着実に準備',fx:{happy:15,spirit:15,money:30}},
+       {icon:'😌',txt:'今の会社で続けることを選ぶ',hint:'安定を取る',fx:{happy:8,money:30}}
+     ]},
+
+    {age:39,tag:'裁判沙汰',tc:'tag-trouble',bar:'bar-trouble',img:'lawsuit',type:'choice',
+     txt:'ビジネストラブルで訴訟を起こされた。または、泣き寝入りせず自分が訴えることを考えている。',
+     choices:[
+       {icon:'⚖️',txt:'弁護士を立てて裁判で争う',hint:'正義のために戦う',fx:{happy:5,spirit:20,money:-100}},
+       {icon:'🤝',txt:'示談・和解を選ぶ',hint:'早期解決',fx:{happy:8,spirit:10,money:-30}},
+       {icon:'📋',txt:'調停・仲裁を活用する',hint:'穏やかな解決',fx:{happy:10,spirit:15,money:-20}},
+       {icon:'😔',txt:'泣き寝入りしてしまう',hint:'後悔が残る',fx:{happy:-20,spirit:-20}}
+     ]},
+
+    {age:40,tag:'40代の大勝負',tc:'tag-work',bar:'bar-work',img:'forties_peak',type:'dice',
+     txt:'40歳の節目に大きなチャンスが。でも大きなリスクも。サイコロで運命を！',
+     good:{txt:'プロジェクトリーダーに抜擢！大幅昇給。人生の黄金期が訪れた。',fx:{happy:30,spirit:25,money:200}},
+     bad:{txt:'リストラ対象に…。まさかの事態。でもここから新しい道を探そう。',fx:{happy:-20,spirit:10,money:-100}}},
+
+    {age:41,tag:'パートナーへの感謝',tc:'tag-love',bar:'bar-love',img:'gratitude',type:'choice',
+     txt:'結婚して10年以上。改めてパートナーへの感謝を伝えるとしたら？',
+     choices:[
+       {icon:'🌹',txt:'サプライズ旅行をプレゼント',hint:'愛情表現',fx:{happy:35,love:40,money:-100}},
+       {icon:'💌',txt:'感謝の手紙を書く',hint:'言葉で伝える',fx:{happy:30,love:38}},
+       {icon:'💎',txt:'記念の指輪を贈る',hint:'永遠の証',fx:{happy:35,love:42,money:-80}}
+     ]},
+
+    {age:42,tag:'子供の反抗期',tc:'tag-family',bar:'bar-family',img:'puberty_child',type:'choice',
+     txt:'子供が反抗期に突入。「うるさい！あっちへ行って！」と部屋に籠もってしまった。',
+     choices:[
+       {icon:'🤝',txt:'根気強く向き合い続ける',hint:'親の愛は変わらない',fx:{happy:12,love:15,spirit:-5}},
+       {icon:'😌',txt:'そっと見守りながら信じて待つ',hint:'子供のペースで',fx:{happy:10,love:18,spirit:5}},
+       {icon:'😤',txt:'厳しく叱る',hint:'愛のムチ',fx:{happy:-5,love:-5}}
+     ]},
+
+    {age:43,tag:'不倫の誘惑',tc:'tag-love',bar:'bar-love',img:'affair',type:'choice',
+     txt:'職場の同僚から「実はずっと気になっていた」と告白された。既婚者なのに心が揺れる。',
+     choices:[
+       {icon:'🚫',txt:'きっぱり断り、パートナーに話す',hint:'誠実さを守る',fx:{happy:15,love:25,spirit:20}},
+       {icon:'🤐',txt:'断るが秘密にしておく',hint:'自分の中で解決',fx:{happy:5,love:10,spirit:5}},
+       {icon:'💔',txt:'関係を持ってしまう',hint:'取り返しのつかない選択',fx:{happy:-15,love:-30,spirit:-25}}
+     ]},
+
+    {age:45,tag:'老後の資産準備',tc:'tag-money',bar:'bar-money',img:'investment',type:'choice',
+     txt:'老後の資金を本格的に考える時期。どんな戦略を取る？',
+     choices:[
+       {icon:'📈',txt:'株式・投資信託でリスクを取る',hint:'高リターンを狙う',fx:{happy:10,spirit:10,money:200}},
+       {icon:'🏠',txt:'不動産投資で安定収入を',hint:'長期的な視点',fx:{happy:8,spirit:5,money:150}},
+       {icon:'💰',txt:'iDeCo・NISAで着実に積み立て',hint:'堅実な老後対策',fx:{happy:10,money:100}},
+       {icon:'🏦',txt:'定期預金だけで安全に',hint:'リスクゼロ',fx:{happy:5,money:30}}
+     ]},
+
+    {age:46,tag:'子供の大学受験',tc:'tag-family',bar:'bar-family',img:'children_exam',type:'choice',
+     txt:'子供が大学受験を迎えた。どんな親として支える？',
+     choices:[
+       {icon:'📖',txt:'全力サポート、塾代も惜しまない',hint:'教育への投資',fx:{happy:20,love:20,money:-100}},
+       {icon:'💪',txt:'「自分でやれ」と自立を促す',hint:'見守る親',fx:{happy:15,love:15}},
+       {icon:'❤️',txt:'体調管理と精神的サポートだけ',hint:'そばにいる',fx:{happy:18,love:22}}
+     ]},
+
+    {age:48,tag:'体の変化・更年期',tc:'tag-health',bar:'bar-health',img:'menopause',type:'choice',
+     txt:'体の変化を感じ始めた。疲れやすく、気持ちの波も大きくなってきた。',
+     choices:[
+       {icon:'🏥',txt:'専門医に相談してホルモン治療を検討',hint:'医学的アプローチ',fx:{health:20,happy:15,spirit:15,money:-30}},
+       {icon:'🧘',txt:'ヨガ・瞑想・食生活改善で対処',hint:'自然な方法',fx:{health:15,happy:12,spirit:12}},
+       {icon:'👥',txt:'同じ悩みを持つコミュニティに参加',hint:'共感と支え合い',fx:{health:8,happy:15,spirit:18}}
+     ]},
+
+    {age:50,tag:'50歳の健康診断',tc:'tag-health',bar:'bar-health',img:'health_50',type:'choice',
+     txt:'健康診断で要注意の項目がいくつか。「生活習慣の改善が必要です」と言われた。',
+     choices:[
+       {icon:'🏃',txt:'本格的にジムに通い始める',hint:'今からでも遅くない',fx:{health:30,happy:18,spirit:15,money:-30}},
+       {icon:'🥗',txt:'食事と睡眠を徹底的に見直す',hint:'基本から変える',fx:{health:25,happy:15,spirit:12}},
+       {icon:'🍺',txt:'「まだ大丈夫」と気にしない',hint:'後悔するかも',fx:{health:-20,happy:8}}
+     ]},
+
+    {age:51,tag:'子供の独立',tc:'tag-family',bar:'bar-family',img:'empty_nest',type:'choice',
+     txt:'子供が就職して家を出た。「巣立ち」の瞬間。どんな気持ちで見送る？',
+     choices:[
+       {icon:'🎊',txt:'盛大に送り出して次のステージを楽しむ',hint:'第二の人生へ',fx:{happy:30,love:20,spirit:20}},
+       {icon:'😢',txt:'寂しくて涙が止まらない',hint:'空の巣症候群',fx:{happy:-10,spirit:-10,love:10}},
+       {icon:'🤝',txt:'適切な距離感を保ちながら繋がる',hint:'大人の関係へ',fx:{happy:25,love:25,spirit:15}}
+     ]},
+
+    {age:52,tag:'熟年夫婦の再スタート',tc:'tag-love',bar:'bar-love',img:'rekindled',type:'choice',
+     txt:'子供が独立して二人きりに戻った夫婦。新しい関係をどう築く？',
+     choices:[
+       {icon:'🌍',txt:'二人で旅行・新しい趣味を始める',hint:'黄金の第二章',fx:{happy:35,love:40,money:-80}},
+       {icon:'☕',txt:'いつものカフェで静かな時間を共有',hint:'小さな幸せ',fx:{happy:28,love:32}},
+       {icon:'🏡',txt:'一緒に庭や家をリフォームする',hint:'共同プロジェクト',fx:{happy:30,love:35,money:-100}}
+     ]},
+
+    {age:53,tag:'親の看取り',tc:'tag-family',bar:'bar-family',img:'funeral',type:'choice',
+     txt:'長い間介護してきた親が、いよいよ最後の時を迎えようとしている。',
+     choices:[
+       {icon:'🤝',txt:'ずっとそばにいて手を握り続ける',hint:'最後まで一緒に',fx:{happy:5,love:20,spirit:15}},
+       {icon:'💬',txt:'「産んでくれてありがとう」と伝える',hint:'言葉を届ける',fx:{happy:10,love:25,spirit:20}},
+       {icon:'😢',txt:'悲しみで何もできない…',hint:'それも人間らしい',fx:{happy:-10,spirit:-5,love:10}}
+     ]},
+
+    {age:55,tag:'老後の準備・相続',tc:'tag-money',bar:'bar-money',img:'inheritance',type:'dice',
+     txt:'定年まであと数年。老後の生活設計と、親の遺産相続でトラブル発生！サイコロで！',
+     good:{txt:'相続は円満解決。老後の資産も順調。悠々自適な晩年が見えてきた。',fx:{happy:25,spirit:20,money:300}},
+     bad:{txt:'相続で兄弟とトラブル…弁護士費用もかさんだ。でも解決した。',fx:{happy:-10,spirit:5,money:-80}}},
+
+    {age:58,tag:'パートナーへの愛',tc:'tag-love',bar:'bar-love',img:'love_senior',type:'choice',
+     txt:'長年連れ添ったパートナー。改めて愛情を伝えるとしたら？',
+     choices:[
+       {icon:'💌',txt:'「ずっとありがとう、これからもよろしく」',hint:'言葉で伝える',fx:{happy:38,love:48,spirit:25}},
+       {icon:'💍',txt:'結婚記念日に新しい指輪を贈る',hint:'永遠の愛を誓う',fx:{happy:40,love:50,money:-60}},
+       {icon:'🌸',txt:'二人で思い出の場所を巡る旅に出る',hint:'原点回帰',fx:{happy:38,love:45,money:-80}}
+     ]},
+
+    {age:60,tag:'定年退職',tc:'tag-work',bar:'bar-work',img:'retirement',type:'dice',
+     txt:'いよいよ定年退職の日。長い仕事人生に幕を下ろす。サイコロで最後の運命を！',
+     good:{txt:'盛大な送別会！同僚・後輩から花束と涙。次のステージへ胸を張って。',fx:{happy:40,spirit:30,money:200}},
+     bad:{txt:'静かな退職。でも、やり遂げた達成感が胸にある。新しい自分の時間が始まった。',fx:{happy:25,spirit:20}}},
+
+    {age:61,tag:'セカンドライフ',tc:'tag-life',bar:'bar-life',img:'second_life',type:'choice',
+     txt:'退職後の生活。豊かなセカンドライフをどう過ごす？',
+     choices:[
+       {icon:'🌍',txt:'念願の世界一周旅行に出発！',hint:'夢の実現',fx:{happy:45,spirit:30,money:-200}},
+       {icon:'🌱',txt:'農業・田舎暮らしを始める',hint:'自然と共に',fx:{happy:35,health:20,spirit:25,money:-50}},
+       {icon:'📚',txt:'長年の夢だった勉強・資格挑戦',hint:'学び続ける',fx:{happy:30,spirit:30}},
+       {icon:'👥',txt:'地域のボランティア活動に貢献',hint:'社会と繋がる',fx:{happy:35,spirit:28,love:15}}
+     ]},
+
+    {age:65,tag:'老後の体の変化',tc:'tag-health',bar:'bar-health',img:'senior_health',type:'choice',
+     txt:'65歳。体のあちこちが気になり始めた。どう向き合う？',
+     choices:[
+       {icon:'🏥',txt:'定期的に病院に通い早期発見を',hint:'健康第一',fx:{health:20,happy:15,spirit:15,money:-30}},
+       {icon:'🧘',txt:'無理せず穏やかに体と相談',hint:'自分のペースで',fx:{health:10,happy:18,spirit:12}},
+       {icon:'🏃',txt:'好きなことをできる限り続ける',hint:'生きがいが大切',fx:{health:-5,happy:25,spirit:20}}
+     ]},
+
+    {age:68,tag:'孫との時間',tc:'tag-family',bar:'bar-family',img:'grandchild',type:'choice',
+     txt:'孫が生まれた！どんなおじいちゃん（おばあちゃん）になる？',
+     choices:[
+       {icon:'👴',txt:'積極的に子育てを手伝う',hint:'頼れる存在に',fx:{happy:40,love:30,health:-5}},
+       {icon:'🎁',txt:'プレゼントを贈りながら良い距離感で',hint:'干渉しすぎず',fx:{happy:35,love:25,money:-30}},
+       {icon:'📖',txt:'昔話や人生経験を語り継ぐ',hint:'知恵を繋ぐ',fx:{happy:38,love:28,spirit:20}}
+     ]},
+
+    {age:72,tag:'パートナーとの別れ',tc:'tag-love',bar:'bar-love',img:'partner_ill',type:'choice',
+     txt:'長年共に生きてきたパートナーが病気に。余命告知を受けた。',
+     choices:[
+       {icon:'🤝',txt:'最後まで全力で寄り添い、一緒に笑う',hint:'愛の形',fx:{happy:10,love:50,spirit:30}},
+       {icon:'💬',txt:'「ありがとう、大好きだよ」を何度も伝える',hint:'言葉で残す',fx:{happy:8,love:50,spirit:28}},
+       {icon:'📔',txt:'二人の思い出をアルバムに残す',hint:'記憶を紡ぐ',fx:{happy:12,love:48,spirit:25}}
+     ]},
+
+    {age:75,tag:'人生の総決算',tc:'tag-life',bar:'bar-life',img:'life_end',type:'dice',
+     txt:'75歳。ここまでの人生を振り返る。最後のサイコロ！',
+     good:{txt:'「いい人生だった」と心から言える。感謝が後悔を遥かに上回る。それがすべてだ。',fx:{happy:50,spirit:40,love:30}},
+     bad:{txt:'叶わなかった夢もある。でもそれも含めて、これがあなたの人生だった。',fx:{happy:20,spirit:25,love:20}}}
+  ];
+}
+
+/* ── GAME ENGINE ── */
+function startGame(){
+  C.name=document.getElementById('char-name').value.trim()||'プレイヤー';
+  C.avatar=document.querySelector('.av-o.sel')?.textContent||'👦';
+  C.gender=gp('gender-row')||'男性';
+  C.blood=gp('blood-row')||'A型';
+  C.personality=gp('pers-row')||'外向型';
+  C.dad=document.getElementById('dad').value;
+  C.mom=document.getElementById('mom').value;
+  ST={money:C.startMoney,health:100,happy:70,love:0,spirit:50};
+  if(C.jobType==='free')ST.money=Math.round(ST.money*.5);
+  if(C.jobType==='venture')ST.money=Math.round(ST.money*.3);
+  if(C.jobType==='creative')ST.money=Math.round(ST.money*.7);
+  LOG=[];ei=0;
+  EVS=buildEvs();
+  document.getElementById('g-av').textContent=C.avatar;
+  document.getElementById('g-nm').textContent=C.name;
+  document.getElementById('g-jb').textContent=C.job;
+  show('game');
+  updateHUD();
+  renderEv();
+}
+
+function updateHUD(){
+  document.getElementById('prog').style.width=Math.round(ei/EVS.length*100)+'%';
+  document.getElementById('g-age').textContent=ST.age+'歳';
+  document.getElementById('sm').textContent=Math.max(0,Math.round(ST.money));
+  document.getElementById('sh').textContent=clamp(ST.health);
+  document.getElementById('sha').textContent=clamp(ST.happy);
+  document.getElementById('sl2').textContent=Math.max(0,Math.round(ST.love));
+  document.getElementById('ss').textContent=clamp(ST.spirit);
+}
+
+function renderEv(){
+  if(ei>=EVS.length){showResult();return;}
+  const ev=EVS[ei];
+  ST.age=ev.age;
+  updateHUD();
+
+  /* image */
+  loadEventImage(ev.img||'life_end', ev.tc||'tag-life', ev.tag);
+
+  /* animate card */
+  const card=document.getElementById('evc');
+  card.classList.remove('su');void card.offsetWidth;card.classList.add('su');
+  document.getElementById('evbar').className='evbar '+(ev.bar||'bar-life');
+  const tEl=document.getElementById('evtag');
+  tEl.className='evtag '+(ev.tc||'tag-life');
+  tEl.textContent=ev.tag;
+  document.getElementById('evtxt').textContent=ev.txt;
+  document.getElementById('evfx').innerHTML='';
+
+  document.getElementById('chs').innerHTML='';
+  const da=document.getElementById('da');
+  da.style.display='none';
+  document.getElementById('dres').textContent='';
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('gbody').scrollTop=0;
+
+  if(ev.type==='info'){
+    addLog(ev.age,ev.txt.slice(0,50)+'…');
+    setTimeout(()=>{ei++;renderEv();},2600);
+
+  } else if(ev.type==='choice'){
+    (ev.choices||[]).forEach(c=>{
+      const b=document.createElement('button');
+      b.className='cbtn';
+      b.innerHTML=`<span class="ci">${c.icon||'▶'}</span><div class="ct">${c.txt}<div class="ch">${c.hint||''}</div></div>`;
+      b.onclick=()=>{
+        document.getElementById('chs').querySelectorAll('.cbtn').forEach(x=>x.disabled=true);
+        applyFx(c.fx);showFx(c.fx);addLog(ev.age,c.txt);updateHUD();
+        setTimeout(()=>{ei++;renderEv();},1800);
+      };
+      document.getElementById('chs').appendChild(b);
+    });
+
+  } else if(ev.type==='dice'){
+    da.style.display='block';
+    const db=document.getElementById('dbtn');
+    db.disabled=false;db.textContent='🎲 サイコロを振る';db.classList.remove('shk');
+  }
+}
+
+function rollDice(){
+  const db=document.getElementById('dbtn');
+  db.disabled=true;db.classList.add('shk');db.textContent='🎲 振ってる...';
+  setTimeout(()=>{
+    db.classList.remove('shk');
+    const roll=Math.floor(Math.random()*6)+1;
+    const ev=EVS[ei];
+    const isGood=roll>=4;
+    const out=isGood?ev.good:ev.bad;
+    const em=roll===6?'⚡':roll===5?'✨':roll===4?'😊':roll===3?'😓':roll===2?'😰':'💀';
+    document.getElementById('dres').textContent=`${em} [${roll}] → ${isGood?'成功！':'失敗…'}\n${(out.txt||'').slice(0,90)}`;
+    applyFx(out.fx||{});showFx(out.fx||{});addLog(ev.age,(out.txt||'').slice(0,55));updateHUD();
+    document.getElementById('next-btn').style.display='inline-block';
+  },1000);
+}
+
+function doNext(){document.getElementById('next-btn').style.display='none';ei++;renderEv();}
+
+function applyFx(fx){
+  if(!fx)return;
+  ST.money+=(fx.money||0);ST.health+=(fx.health||0);ST.happy+=(fx.happy||0);ST.love+=(fx.love||0);ST.spirit+=(fx.spirit||0);
+  ST.health=clamp(ST.health);ST.happy=clamp(ST.happy);ST.spirit=clamp(ST.spirit);
+}
+
+function showFx(fx){
+  if(!fx)return;
+  const el=document.getElementById('evfx');el.innerHTML='';
+  [{l:'💰',v:fx.money},{l:'❤️',v:fx.health},{l:'😊',v:fx.happy},{l:'💕',v:fx.love},{l:'⚡',v:fx.spirit}]
+    .filter(i=>i.v&&i.v!==0).forEach(i=>{
+      const b=document.createElement('span');
+      b.className='fx '+(i.v>0?'fp':'fn');
+      b.textContent=`${i.l} ${i.v>0?'+':''}${i.v}`;
+      el.appendChild(b);
+    });
+}
+
+function addLog(age,text){if(text)LOG.push({age,text:String(text).slice(0,60)});}
+
+function showResult(){
+  document.getElementById('r-av').textContent=C.avatar;
+  const score=Math.round(ST.money*.2+clamp(ST.health)*.2+clamp(ST.happy)*.25+Math.max(0,ST.love)*.2+clamp(ST.spirit)*.15);
+  let title='😌 それもまた人生';
+  if(score>350)title='✨ 伝説の人生！';
+  else if(score>250)title='🌟 輝かしい人生！';
+  else if(score>150)title='👍 充実した人生';
+  else if(score>80)title='🌱 悪くない人生';
+  document.getElementById('r-t').textContent=title;
+  document.getElementById('r-s').textContent=`${C.name}・${C.gender}・${C.blood}・${C.job}・${C.wealthLabel}`;
+  document.getElementById('r-stats').innerHTML=[
+    {v:Math.max(0,Math.round(ST.money))+'万',l:'💰 最終貯金'},
+    {v:clamp(ST.happy),l:'😊 幸福度'},
+    {v:clamp(ST.health),l:'❤️ 健康'},
+    {v:Math.max(0,Math.round(ST.love)),l:'💕 恋愛運'},
+    {v:clamp(ST.spirit),l:'⚡ 精神力'},
+    {v:score,l:'⭐ 総合スコア'}
+  ].map(x=>`<div class="fst"><div class="fstv">${x.v}</div><div class="fstl">${x.l}</div></div>`).join('');
+  document.getElementById('r-log').innerHTML=LOG.map(l=>`<div class="li"><div class="la">${l.age}歳</div><div class="lt">${l.text}</div></div>`).join('');
+  show('result');
+}
+</script>
